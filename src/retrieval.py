@@ -1,27 +1,32 @@
 import numpy as np
 
 
-def search_similar_chunks(query, chunks, embeddings, model, top_k=3):
-    # Convert the user's question into an embedding
+def search_faiss(query, chunks, index, model, top_k=3):
+    # Convert the question into an embedding
     query_embedding = model.encode(
         [query],
         normalize_embeddings=True
-    )[0]
+    )
 
-    # Calculate similarity with every chunk
-    scores = np.dot(embeddings, query_embedding)
+    query_embedding = np.asarray(
+        query_embedding,
+        dtype="float32"
+    )
 
-    # Get indices of highest scores
-    top_indices = np.argsort(scores)[::-1][:top_k]
+    # Search the FAISS index
+    scores, indices = index.search(
+        query_embedding,
+        top_k
+    )
 
     results = []
 
-    for index in top_indices:
+    for score, index_position in zip(scores[0], indices[0]):
         results.append({
-            "chunk_id": chunks[index]["chunk_id"],
-            "page": chunks[index]["page"],
-            "score": float(scores[index]),
-            "text": chunks[index]["text"]
+            "chunk_id": chunks[index_position]["chunk_id"],
+            "page": chunks[index_position]["page"],
+            "score": float(score),
+            "text": chunks[index_position]["text"]
         })
 
     return results

@@ -1,6 +1,6 @@
-from src.embeddings import create_embeddings
 from src.embeddings import create_embeddings, model
-from src.retrieval import search_similar_chunks
+from src.retrieval import search_faiss
+from src.vector_store import create_faiss_index
 
 from src.pdf_processor import (
     extract_text_from_pdf,
@@ -18,12 +18,15 @@ for page in pages:
 
 chunks = create_chunks(pages)
 embeddings = create_embeddings(chunks)
+index = create_faiss_index(embeddings)
+
+print("FAISS index size:", index.ntotal)
 query = "What methodology did the researchers use?"
 
-results = search_similar_chunks(
+results = search_faiss(
     query,
     chunks,
-    embeddings,
+    index,
     model,
     top_k=3
 )
