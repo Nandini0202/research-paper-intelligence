@@ -1,4 +1,6 @@
 from src.embeddings import create_embeddings
+from src.embeddings import create_embeddings, model
+from src.retrieval import search_similar_chunks
 
 from src.pdf_processor import (
     extract_text_from_pdf,
@@ -16,6 +18,25 @@ for page in pages:
 
 chunks = create_chunks(pages)
 embeddings = create_embeddings(chunks)
+query = "What methodology did the researchers use?"
+
+results = search_similar_chunks(
+    query,
+    chunks,
+    embeddings,
+    model,
+    top_k=3
+)
+
+print("\n===== SEARCH RESULTS =====")
+
+for result in results:
+    print(
+        f"\nChunk: {result['chunk_id']}"
+        f" | Page: {result['page']}"
+        f" | Score: {result['score']:.4f}"
+    )
+    print(result["text"][:500])
 
 print("Number of pages:", len(pages))
 print("Number of chunks:", len(chunks))
